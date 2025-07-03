@@ -38,7 +38,7 @@ const handleSQLError = (error) => {
 
 // 🟢 Endpoint criar/atualizar cliente
 app.post("/clientes", async (req, res) => {
-  const { celular, nome, cpf, email, assinante, pagtoEmDia, prefResp, nomeToolChamadora, nomeAgente } = req.body;
+  const { celular, nome, cpf, email, assinante, pagtoEmDia, prefResp, nomeToolChamadora, nomeAgente, resumo_sobre_mim } = req.body;
 
   if (!celular) {
     return res.status(400).json({
@@ -60,6 +60,7 @@ app.post("/clientes", async (req, res) => {
     request.input('PrefResp', sql.VarChar(5), prefResp || '');
     request.input('NomeToolChamadora', sql.VarChar(60), nomeToolChamadora || '');
     request.input('NomeAgente', sql.VarChar(60), nomeAgente || '');
+    request.input('Resumo_Sobre_Mim', sql.NVarChar(sql.MAX), resumo_sobre_mim || '');
 
     await request.execute('SpGrCliente');
 
