@@ -109,38 +109,26 @@ app.get("/clientes/all", async (req, res) => {
 });
 
 
-/// 🟢 Endpoint para buscar cliente por celular com NomeAgente e NomeToolChamadora
+// 🟢 Endpoint para buscar cliente por celular de forma dinâmica
 app.get("/cliente/:celular", async (req, res) => {
   try {
-    const { nomeAgente, nomeToolChamadora } = req.query; // Pega os parâmetros da query string
+    const { nomeAgente, nomeToolChamadora } = req.query;
 
     const pool = await poolPromise;
     const result = await pool.request()
       .input('Celular', sql.VarChar(15), req.params.celular)
-      .input('NomeAgente', sql.VarChar(60), nomeAgente || '') // Se não for enviado, usa string vazia
+      .input('NomeAgente', sql.VarChar(60), nomeAgente || '')
       .input('NomeToolChamadora', sql.VarChar(60), nomeToolChamadora || '')
       .execute('spse1cliente');
 
-    if (result.recordset.length === 0) {
+    if (!result.recordset || result.recordset.length === 0) {
       return res.status(200).json({ 
-        message: "Cliente não cadastrado!" 
+        message: "Cliente não cadastrado!",
+        data: null
       });
     }
 
-    const cliente = result.recordset[0];
-
-    const clienteData = {
-      Nome: cliente.NomeCli,
-      Celular: cliente.Celular,
-      CPF: cliente.CPF,
-      Email: cliente.eMail,
-      Assinante: cliente.Assinante,  
-      PagtoEmDia: cliente.PagtoEmDia,
-      PrefResp: cliente.PrefResp,
-      SaldoTrocaMensTexto: cliente.SaldoTrocaMensTexto,
-      SaldoTrocaMensAudio: cliente.SaldoTrocaMensAudio,
-      Validade: cliente.Validade
-    };
+    const clienteData = result.recordset[0]; // Retorna tudo dinamicamente
 
     res.status(200).json({
       message: "Cliente encontrado com sucesso!",
@@ -150,7 +138,7 @@ app.get("/cliente/:celular", async (req, res) => {
   } catch (error) {
     const errorMessages = handleSQLError(error);
     console.error("Erro SQL:", errorMessages);
-    
+
     res.status(400).json({
       error: "Erro na busca",
       details: process.env.NODE_ENV === 'development' ? errorMessages : undefined
