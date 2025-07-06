@@ -655,6 +655,47 @@ app.delete("/threads", async (req, res) => {
   }
 });
 
+// 🔵 Endpoint GET - Buscar lead pelo nome
+app.get("/lead", async (req, res) => {
+  try {
+    const { nome } = req.query;
+
+    if (!nome || typeof nome !== "string" || nome.trim() === "") {
+      return res.status(400).json({
+        error: "Parâmetro 'nome' é obrigatório e deve ser uma string válida.",
+        suggestion: "Utilize ?nome=João da Silva na URL."
+      });
+    }
+
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input("Nome", sql.VarChar(200), nome)
+      .execute("SpSeLead");
+
+    if (result.recordset.length === 0) {
+      return res.status(200).json({
+        message: "Nenhum lead encontrado com o nome informado.",
+        data: []
+      });
+    }
+
+    res.status(200).json({
+      message: `Leads encontrados: ${result.recordset.length}`,
+      data: result.recordset
+    });
+
+  } catch (error) {
+    const errorMessages = handleSQLError(error);
+    console.error("Erro SQL:", errorMessages);
+
+    res.status(500).json({
+      error: "Erro ao buscar o lead",
+      details: process.env.NODE_ENV === 'development' ? errorMessages : undefined,
+      suggestion: "Verifique os dados enviados ou consulte o suporte"
+    });
+  }
+});
+
 //////////////////////////************* FIM - API ZIMU *****************/////////////////////////////////
 
 // Configuração final
