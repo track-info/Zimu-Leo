@@ -696,6 +696,77 @@ app.get("/lead", async (req, res) => {
   }
 });
 
+// 🟢 Endpoint para listar todos os leads com todos os recordsets
+app.get("/leads/todos", async (req, res) => {
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request().execute("SpSeTodos_Leads");
+
+    if (!result || (!result.recordset && !result.recordsets)) {
+      return res.status(200).json({
+        message: "Nenhum dado retornado pela procedure.",
+        data: []
+      });
+    }
+
+    res.status(200).json({
+      message: `Dados retornados com sucesso`,
+      recordsets: result.recordsets  // retorna todos os conjuntos
+    });
+
+  } catch (error) {
+    const errorMessages = handleSQLError(error);
+    console.error("Erro SQL:", errorMessages);
+
+    res.status(500).json({
+      error: "Erro ao buscar os leads",
+      details: process.env.NODE_ENV === 'development' ? errorMessages : undefined,
+      suggestion: "Verifique se a procedure está correta ou consulte o suporte técnico"
+    });
+  }
+});
+
+// 🟢 Endpoint para listar diálogo de um usuário
+app.get("/dialogo/:celular", async (req, res) => {
+  try {
+    const { celular } = req.params;
+
+    if (!celular || celular.length < 8) {
+      return res.status(400).json({
+        error: "Parâmetro 'celular' inválido",
+        suggestion: "Informe um número de celular válido no formato esperado"
+      });
+    }
+
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input("Celular", sql.VarChar(20), celular)
+      .execute("SpSeDialogo");
+
+    if (!result || (!result.recordset && !result.recordsets)) {
+      return res.status(200).json({
+        message: "Nenhum diálogo encontrado para este celular",
+        data: []
+      });
+    }
+
+    res.status(200).json({
+      message: `Diálogo(s) encontrados para o celular ${celular}`,
+      recordsets: result.recordsets
+    });
+
+  } catch (error) {
+    const errorMessages = handleSQLError(error);
+    console.error("Erro SQL:", errorMessages);
+
+    res.status(500).json({
+      error: "Erro ao buscar diálogo do usuário",
+      details: process.env.NODE_ENV === 'development' ? errorMessages : undefined,
+      suggestion: "Verifique os dados enviados ou consulte o suporte"
+    });
+  }
+});
+
 //////////////////////////************* FIM - API ZIMU *****************/////////////////////////////////
 
 // Configuração final
