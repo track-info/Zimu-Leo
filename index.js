@@ -696,7 +696,7 @@ app.get("/lead", async (req, res) => {
   }
 });
 
-// 🟢 Endpoint para listar todos os leads com todos os recordsets
+// 🟢 Endpoint para listar todos os leads 
 app.get("/leads/todos", async (req, res) => {
   try {
     const pool = await poolPromise;
@@ -726,33 +726,33 @@ app.get("/leads/todos", async (req, res) => {
   }
 });
 
-// 🟢 Endpoint para listar diálogo de um usuário
-app.get("/dialogo/:celular", async (req, res) => {
+// 🔵 Endpoint para listar diálogo 
+app.get("/dialogo", async (req, res) => {
   try {
-    const { celular } = req.params;
+    const { celular } = req.query;
 
-    if (!celular || celular.length < 8) {
+    if (!celular || typeof celular !== 'string') {
       return res.status(400).json({
-        error: "Parâmetro 'celular' inválido",
-        suggestion: "Informe um número de celular válido no formato esperado"
+        error: "Parâmetro 'celular' é obrigatório",
+        suggestion: "Inclua ?celular=XXXXXXXXXXX na URL"
       });
     }
 
     const pool = await poolPromise;
     const result = await pool.request()
-      .input("Celular", sql.VarChar(20), celular)
+      .input("Celular", sql.Char(20), celular)
       .execute("SpSeDialogo");
 
-    if (!result || (!result.recordset && !result.recordsets)) {
+    if (result.recordset.length === 0) {
       return res.status(200).json({
-        message: "Nenhum diálogo encontrado para este celular",
+        message: "Nenhum diálogo encontrado para este número",
         data: []
       });
     }
 
     res.status(200).json({
-      message: `Diálogo(s) encontrados para o celular ${celular}`,
-      recordsets: result.recordsets
+      message: `Diálogos encontrados: ${result.recordset.length}`,
+      data: result.recordset
     });
 
   } catch (error) {
@@ -760,12 +760,13 @@ app.get("/dialogo/:celular", async (req, res) => {
     console.error("Erro SQL:", errorMessages);
 
     res.status(500).json({
-      error: "Erro ao buscar diálogo do usuário",
+      error: "Erro ao buscar diálogo",
       details: process.env.NODE_ENV === 'development' ? errorMessages : undefined,
-      suggestion: "Verifique os dados enviados ou consulte o suporte"
+      suggestion: "Verifique os dados enviados e tente novamente"
     });
   }
 });
+
 
 //////////////////////////************* FIM - API ZIMU *****************/////////////////////////////////
 
