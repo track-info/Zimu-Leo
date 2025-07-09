@@ -768,7 +768,7 @@ app.get("/dialogo", async (req, res) => {
 });
 
 // 🟢 Endpoint para salvar uma recomendação
-app.post("/recomendacao/enviar", async (req, res) => {
+app.post("/reengajamento/enviado", async (req, res) => {
   const { celPrinc, celSugestao, mensagem, dataEnv } = req.body;
 
   // Validação básica
@@ -802,6 +802,36 @@ app.post("/recomendacao/enviar", async (req, res) => {
       error: "Erro ao enviar recomendação",
       details: process.env.NODE_ENV === 'development' ? errorMessages : undefined,
       suggestion: "Verifique os dados enviados e tente novamente"
+    });
+  }
+});
+
+// 🔵 Endpoint para listar engajamentos (re-engajamentos)
+app.get("/reengajamento", async (req, res) => {
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request().execute("SpSeReEngaja");
+
+    if (!result.recordsets || result.recordsets.length === 0) {
+      return res.status(200).json({
+        message: "Nenhum engajamento encontrado!",
+        data: []
+      });
+    }
+
+    res.status(200).json({
+      message: `Engajamentos encontrados: ${result.recordsets[0].length}`,
+      data: result.recordsets[0]
+    });
+
+  } catch (error) {
+    const errorMessages = handleSQLError(error);
+    console.error("Erro SQL:", errorMessages);
+
+    res.status(500).json({
+      error: "Erro ao buscar engajamentos",
+      details: process.env.NODE_ENV === 'development' ? errorMessages : undefined,
+      suggestion: "Tente novamente mais tarde"
     });
   }
 });
