@@ -767,6 +767,45 @@ app.get("/dialogo", async (req, res) => {
   }
 });
 
+// 🟢 Endpoint para salvar uma recomendação
+app.post("/recomendacao/enviar", async (req, res) => {
+  const { celPrinc, celSugestao, mensagem, dataEnv } = req.body;
+
+  // Validação básica
+  if (!celPrinc || !celSugestao || !mensagem || !dataEnv) {
+    return res.status(400).json({
+      error: "Todos os campos são obrigatórios: celPrinc, celSugestao, mensagem e dataEnv",
+      suggestion: "Verifique se todos os dados estão sendo enviados corretamente"
+    });
+  }
+
+  try {
+    const pool = await poolPromise;
+
+    const request = pool.request();
+    request.input("CelPrinc", sql.Char(20), celPrinc);
+    request.input("CelSugestao", sql.Char(20), celSugestao);
+    request.input("Mensagem", sql.NVarChar(sql.MAX), mensagem);
+    request.input("DataEnv", sql.DateTime, new Date(dataEnv)); // você pode enviar a data como ISO
+
+    await request.execute("SpGrRecoEnv");
+
+    res.status(200).json({
+      message: "Recomendação enviada com sucesso!"
+    });
+
+  } catch (error) {
+    const errorMessages = handleSQLError(error);
+    console.error("Erro SQL:", errorMessages);
+
+    res.status(500).json({
+      error: "Erro ao enviar recomendação",
+      details: process.env.NODE_ENV === 'development' ? errorMessages : undefined,
+      suggestion: "Verifique os dados enviados e tente novamente"
+    });
+  }
+});
+
 
 //////////////////////////************* FIM - API ZIMU *****************/////////////////////////////////
 
