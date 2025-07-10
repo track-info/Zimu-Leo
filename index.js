@@ -769,10 +769,10 @@ app.get("/dialogo", async (req, res) => {
 
 // 🟢 Endpoint para salvar uma recomendação
 app.post("/reengajamento/enviado", async (req, res) => {
-  const { celPrinc, celSugestao, mensagem, dataEnv } = req.body;
+  const { celPrinc, celSugestao, mensagem } = req.body;
 
   // Validação básica
-  if (!celPrinc || !celSugestao || !mensagem || !dataEnv) {
+  if (!celPrinc || !celSugestao || !mensagem) {
     return res.status(400).json({
       error: "Todos os campos são obrigatórios: celPrinc, celSugestao, mensagem e dataEnv",
       suggestion: "Verifique se todos os dados estão sendo enviados corretamente"
@@ -786,7 +786,6 @@ app.post("/reengajamento/enviado", async (req, res) => {
     request.input("CelPrinc", sql.Char(20), celPrinc);
     request.input("CelSugestao", sql.Char(20), celSugestao);
     request.input("Mensagem", sql.NVarChar(sql.MAX), mensagem);
-    request.input("DataEnv", sql.DateTime, new Date(dataEnv)); // você pode enviar a data como ISO
 
     await request.execute("SpGrRecoEnv");
 
