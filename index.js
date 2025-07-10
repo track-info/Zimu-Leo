@@ -563,7 +563,7 @@ app.get("/threads", async (req, res) => {
     const pool = await poolPromise;
     const result = await pool.request()
       .input('Celular', sql.Char(20), celular)  
-      .execute('SpSeThreadIA');                
+      .execute('SpSe1ThreadIA');                
 
     res.status(200).json({
       status: "success",
@@ -805,7 +805,7 @@ app.post("/reengajamento/enviado", async (req, res) => {
   }
 });
 
-// 🔵 Endpoint para listar engajamentos (re-engajamentos)
+// 🟢 Endpoint para listar engajamentos (re-engajamentos)
 app.get("/reengajamento", async (req, res) => {
   try {
     const pool = await poolPromise;
