@@ -835,48 +835,6 @@ app.get("/reengajamento", async (req, res) => {
   }
 });
 
-// 🟢 Endpoint para listar equipe
-
-app.get("/equipe", async (req, res) => {
-  try {
-    const { idprop } = req.query;
-
-    if (!idprop || isNaN(Number(idprop))) {
-      return res.status(400).json({
-        error: "Parâmetro 'idprop' é obrigatório e deve ser um número válido.",
-        suggestion: "Exemplo de uso: /equipe?idprop=123"
-      });
-    }
-
-    const pool = await poolPromise;
-    const result = await pool.request()
-      .input("idprop", sql.Int, parseInt(idprop))
-      .execute("Spseequipe");
-
-    if (result.recordset.length === 0) {
-      return res.status(200).json({
-        message: "Nenhuma equipe encontrada para o idprop informado.",
-        data: []
-      });
-    }
-
-    res.status(200).json({
-      message: `Equipe(s) encontradas: ${result.recordset.length}`,
-      data: result.recordset
-    });
-
-  } catch (error) {
-    const errorMessages = handleSQLError?.(error) || error.message;
-    console.error("Erro SQL:", errorMessages);
-
-    res.status(500).json({
-      error: "Erro ao buscar equipe",
-      details: process.env.NODE_ENV === 'development' ? errorMessages : undefined,
-      suggestion: "Verifique os dados enviados ou consulte o suporte"
-    });
-  }
-});
-
 
 //////////////////////////************* FIM - API ZIMU *****************/////////////////////////////////
 
